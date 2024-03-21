@@ -1,0 +1,82 @@
+---
+output:
+  pdf_document: 
+    toc: yes
+    latex_engine: xelatex
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 课程信息
+This is the course **Data Visualization**.
+
+The course is regularly given on each Thursday from Week 1 to 16, ending with reports in December, 2021 or early January, 2023. There will be a 1.5-hour lecture from 6:00pm to 7:40pm on.
+
+## 授课教师 
+Xin Liu, Associate Professor at School of Statistics and Management, SUFE. More info on 
+<https://github.com/BearLovesBadminton/Homepage>
+
+Office Hour: Tuesday afternoon or by appointment. 
+
+## 内容范围
+#### 0. Brief Review of **R** and **R Studio**.
+
+#### 1. Brief Guide to **R Markdown** and **R Sweave**.
+
+#### 2. Data Cleaning with **tidyverse**, **haven** and other useful packages.
+
+#### 3. Data Visualization: 
+* 3.1 Summarizing Data with **Group by** and **dplyr**;
+
+* 3.2 Producing figures with **plot** and other basic plot R functions;
+
+* 3.3 Producing figures with **ggplot** and **ggplot2**;
+
+* 3.4 Presenting literal and numerical results with **R Markdown** and **R Sweave**;
+
+* 3.5 Introduction to **R Shiny**;
+
+#### 4. Useful Models and Visualization:
+* 4.1 Regression Models
+* 4.2 Variants of Regression Models (Logistic Regression)
+* 4.3 Classification Methods
+* 4.4 Semi-/Unsupervised Methods
+* ...
+
+#### 5. Build your own website interactive with a scientific project and report it with **R Shiny**.
+
+
+## 课程考核
+* 1. 作业和实验 （Course Assignment）: 15% * 3 = 45% 
+* 2. 期末课题（Final Project）: 45-50%
+* 3. 课堂参与（Participation）: 5-10%
+
+
+## 期末课题数据来源：
+* 1. 金融和经济数据
+* 2. 环境科学数据
+* 3. 脑科学数据
+* 4. 物理数据
+* 5. 生物数据
+* 6. 交通数据
+* 7. ...
+
+## Some useful data sources:
+* 1. KEEL dataset Repository
+* 2. Kaggle dataset Repository
+* 3. ...
+
+
+## 参考书目和材料
+* 1. Book: **R for Data Science**
+* 2. Book: **数据之美**
+* 3. Online book: <https://bookdown.org/yihui/rmarkdown/>
+
+
+
+
+
+

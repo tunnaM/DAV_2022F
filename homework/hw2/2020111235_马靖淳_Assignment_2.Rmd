@@ -1,0 +1,152 @@
+---
+title: "Data Analysis and Visualization - Assignment 2"
+author: "Ma Jingchun, 2020111235"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+**1**
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(tidyverse)
+library(readxl)
+library(tibble)
+library(dplyr)
+library(lubridate)
+```
+
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1
+d <- as_tibble(read_excel("dataset-cac-ma.xlsx",1))
+head(d)
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+
+**2**
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q2
+# type
+str(d)
+# descriptive statistics
+summary(d)
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+
+**3**
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q3
+d1 <- select(d, list_price, cost)[5:10,]
+d1
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**4**
+
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q4
+d2 <- filter(d, customer_number == 175749)
+d2
+d3 <- filter(d, region == "Midwest")
+d3
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+
+**5**
+
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q5
+# region 不同取值个数
+length(unique(d$region))
+# 修改前，有错误数据
+aggregate(d$item,by=list(region=d$region),length)
+d[d$region=="Centrall","region"] <- "Central"
+d[d$region=="Soouth","region"] <- "South"
+# 修改后
+length(unique(d$region))
+aggregate(d$item,by=list(region=d$region),length)
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**6**
+
++ sales revenue = quantity sold * list_price
+
++ variable cost = quantity sold * cost
+
++ contribution margin = (sales revenue - variable cost) / sales revenue
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q6
+d <- mutate(d,
+  "sales revenue" = quantity_sold * list_price,
+  "variable cost" = quantity_sold * cost,
+  "contribution margin" = (`sales revenue` - `variable cost`) / `sales revenue`
+  )
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**7**
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q7
+d <- mutate(d,
+  year_quarter = paste(year(date_of_sale),quarter(date_of_sale),sep="_")
+  )
+d %>%
+  group_by( region, year_quarter) %>%
+  summarise( ave_contribution_margin=mean(`contribution margin`, na.rm = TRUE))
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**8**
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q8
+d <- mutate(d,
+  year = year(date_of_sale)
+  )
+d %>%
+  group_by( year,region) %>%
+  summarise( ave_contribution_margin=mean(`contribution margin`, na.rm = TRUE)) %>%
+  arrange( desc(ave_contribution_margin),.by_group = TRUE) %>%
+  filter(row_number() <= 3)
+
+
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**9**
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q9
+d %>%
+  group_by( year, collection) %>%
+  summarise( profit = sum(`sales revenue` - `variable cost`, na.rm = TRUE)) %>%
+  arrange( desc(profit), .by_group = TRUE) %>%
+  filter(row_number() <= 3)
+  
+```
+note: profit = sales revenue - variable cost
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
+**10 **
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q10
+d %>%
+  filter( year == 2018) %>%
+  group_by( brand, collection) %>%
+  summarise( profit = sum(`sales revenue` - `variable cost`, na.rm = TRUE)) %>%
+  arrange( desc(profit), .by_group = TRUE) %>%
+  filter(row_number() <= 1)
+```
+

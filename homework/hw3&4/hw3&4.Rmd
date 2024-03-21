@@ -1,0 +1,211 @@
+---
+title: "Data Analysis and Visualization - Assignment 3 & 4"
+author: "Ma Jingchun, 2020111235"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+**1. 利用你的学号，生成一个 1000×p 的矩阵 X，如下所示。**
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(glmnet)
+library(MASS)
+library(factoextra)
+library(tidyverse)  
+library(cluster)  
+library(broom)
+library(gclus)
+```
+
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1
+studno <- 2020111235 # 改成你的学号！！！！！
+set.seed(studno)
+n <- 1000
+p <- 10
+beta0 <- 1
+beta <- c(c(1,2,3,4,5), rep(0, p-5))
+X <- matrix(rnorm(n*p, 0, 1), nrow=n, ncol=p)
+e <- rnorm(n, 0, 0.2)
+Y <- beta0 + X %*% beta + e
+dat <- data.frame(Y,X)
+colnames(dat) <- c("Y", paste("X", 1:p, sep=""))
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 请描述目前生成的响应变量中，有用的自变量是哪些
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1.1
+model1 = lm(Y~., data=dat)
+summary(model1)
+```
+有用的自变量为X1、X2、X3、X4、X5
+
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 请用 AIC 估计 Y～X 的线性回归中，依次估计出来的系数非零的变量分别是哪些。
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1.2
+model.for <- step(model1,direction = 'forward')
+summary(model.for)
+```
+依次引入的变量为X1，X2，X3，X4，X5
+
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 请用 lasso 和 ridge，依次估计出来的系数非零的变量分别是哪些，绘制 solution path
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1.3
+X=model.matrix(Y~.,dat)[,-1]
+train=sample(1:n, n/2)
+test=(-train)
+Y.test=Y[test]
+#lasso
+cv.lasso <- cv.glmnet(X[train,], Y[train], alpha=1/2)
+M.lasso <- glmnet(X[train,],Y[train],alpha=1, 
+                  lambda=cv.lasso$lambda.min)
+coef(M.lasso) # variable selected given lambda
+M.lasso <- glmnet(X[train,],Y[train],alpha=1)
+plot(M.lasso, label=T, xvar="lambda") 
+plot(M.lasso, label = T, xvar="norm")
+#ridge
+cv.out=cv.glmnet(X[train,], Y[train],alpha=0)
+ridge.mod=glmnet(X[train,], Y[train],alpha=0, 
+                 lambda = cv.out$lambda.min) 
+coef(ridge.mod)
+M.ridge <- glmnet(X[train,],Y[train],alpha=0)
+plot(M.ridge, label=T, xvar="lambda")
+plot(M.ridge, label = T, xvar="norm")
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 设定 p 为 100 重复（b）-（c），结果有什么变化？
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q1.4
+#(a)
+p <- 100
+beta <- c(c(1,2,3,4,5), rep(0, p-5))
+X <- matrix(rnorm(n*p, 0, 1), nrow=n, ncol=p)
+Y <- beta0 + X %*% beta + e
+dat <- data.frame(Y,X)
+colnames(dat) <- c("Y", paste("X", 1:p, sep=""))
+#(b)
+model.for <- step(model1,direction = 'forward')
+summary(model.for)
+#(c)
+X=model.matrix(Y~.,dat)[,-1]
+train=sample(1:n, n/2)
+test=(-train)
+Y.test=Y[test]
+#lasso
+cv.lasso <- cv.glmnet(X[train,], Y[train], alpha=1/2)
+M.lasso <- glmnet(X[train,],Y[train],alpha=1, 
+                  lambda=cv.lasso$lambda.min)
+coef(M.lasso) # variable selected given lambda
+M.lasso <- glmnet(X[train,],Y[train],alpha=1)
+plot(M.lasso, label=T, xvar="lambda")
+plot(M.lasso, label = T, xvar="norm")
+#ridge
+cv.out=cv.glmnet(X[train,], Y[train],alpha=0)
+ridge.mod=glmnet(X[train,], Y[train],alpha=0, 
+                 lambda = cv.out$lambda.min) 
+coef(ridge.mod)
+M.ridge <- glmnet(X[train,],Y[train],alpha=0)
+plot(M.ridge, label=T, xvar="lambda")
+plot(M.ridge, label = T, xvar="norm")
+
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br><br><br>
+
+**2. 请基于 wineTrain 数据集，进行主成分分析。**
+
++ 请计算 wineTrain 的主成分，并输出计算结果，你应该得到⼀个 13*13 的得分矩阵。
+```{r, include=T, echo=T}
+######### Please write your R code in this chunk #########
+### Solution to Q2.1
+data("wine")
+train=sample(1:nrow(wine), nrow(wine)/2)
+test=(-train)
+wineTrain <- wine[train,2:14]
+res.pca <- prcomp(wineTrain, scale = TRUE)
+res.pca$rotation
+
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 通过合适的图表，将 fviz_pca_ind(), fviz_pca_var() 和 fviz_pca_var()进行展示。这三个图展示的分别是什么？
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q2.2
+fviz_pca_ind(res.pca,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+fviz_pca_var(res.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+fviz_pca_biplot(res.pca, repel = TRUE,
+                col.var = "#2E9FDF", # Variables color
+                col.ind = "#696969"  # Individuals color
+)
+
+```
+
+第一张图代表训练样本投影到主成分一和主成分二的坐标位置。
+
+第二张图代表原来十三个变量对主成分一和主成分二的影响
+
+第三张图是样本数据和变量在主成分一主成分二上的联合投影
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 计算每个主成分对原始变量的解释程度，按照降序排列，并计算累计贡献率。你觉得选多少个主成分比较合适？
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q2.3
+eig.val <- get_eigenvalue(res.pca)
+eig.val
+fviz_eig(res.pca)
+```
+我认为选择四个主成分比较合适，因为拐点出现在主成分为4时，累计概率达到74.93009%
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+<br><br>
+
++ 展示原始变量到前 m 个主成分的变换矩阵，其中 m 为你在(c)中的主成分的个数。在前 m 个主成分上，原始的 13 个变量对每个主成分的影响有多少是正的影响，有多少是负影响？请通过 apply 函数进行展示。
+
+```{r}
+######### Please write your R code in this chunk #########
+### Solution to Q2.4
+m = 4
+res.pca$rotation[,1:m]
+res.var <- get_pca_var(res.pca)
+# 计数正影响
+countp_func <- function(x){
+  y <- ifelse(x >0, 1, 0)
+  sum(y)
+}
+apply(res.var$coord[,1:m],2,countp_func)
+# 计数负影响
+countn_func <- function(x){
+  y <- ifelse(x <0, 1, 0)
+  sum(y)
+}
+apply(res.var$coord[,1:m],2,countn_func)
+```
+\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+
